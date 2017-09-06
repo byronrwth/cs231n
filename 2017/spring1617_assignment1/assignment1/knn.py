@@ -37,10 +37,11 @@ get_ipython().magic('load_ext autoreload')
 get_ipython().magic('autoreload 2')
 
 
-# In[ ]:
+# In[3]:
 
 # Load the raw CIFAR-10 data.
-cifar10_dir = 'cs231n/datasets/cifar-10-batches-py'
+#cifar10_dir = 'cs231n/datasets/cifar-10-batches-py'
+cifar10_dir = r'C:\Users\byroncheng\VirtualBox\cs231n\1516\assignment1\datasets\cifar-10-batches-py'
 X_train, y_train, X_test, y_test = load_CIFAR10(cifar10_dir)
 
 # As a sanity check, we print out the size of the training and test data.
@@ -50,7 +51,7 @@ print('Test data shape: ', X_test.shape)
 print('Test labels shape: ', y_test.shape)
 
 
-# In[ ]:
+# In[4]:
 
 # Visualize some examples from the dataset.
 # We show a few examples of training images from each class.
@@ -70,7 +71,7 @@ for y, cls in enumerate(classes):
 plt.show()
 
 
-# In[ ]:
+# In[6]:
 
 # Subsample the data for more efficient code execution in this exercise
 num_training = 5000
@@ -84,7 +85,7 @@ X_test = X_test[mask]
 y_test = y_test[mask]
 
 
-# In[ ]:
+# In[7]:
 
 # Reshape the image data into rows
 X_train = np.reshape(X_train, (X_train.shape[0], -1))
@@ -92,7 +93,7 @@ X_test = np.reshape(X_test, (X_test.shape[0], -1))
 print(X_train.shape, X_test.shape)
 
 
-# In[ ]:
+# In[1]:
 
 from cs231n.classifiers import KNearestNeighbor
 
