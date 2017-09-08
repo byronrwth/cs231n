@@ -13,7 +13,7 @@
 # 
 # In this exercise you will implement these steps and understand the basic Image Classification pipeline, cross-validation, and gain proficiency in writing efficient, vectorized code.
 
-# In[1]:
+# In[2]:
 
 # Run some setup code for this notebook.
 
@@ -71,7 +71,7 @@ for y, cls in enumerate(classes):
 plt.show()
 
 
-# In[6]:
+# In[5]:
 
 # Subsample the data for more efficient code execution in this exercise
 num_training = 5000
@@ -85,7 +85,7 @@ X_test = X_test[mask]
 y_test = y_test[mask]
 
 
-# In[7]:
+# In[6]:
 
 # Reshape the image data into rows
 X_train = np.reshape(X_train, (X_train.shape[0], -1))
@@ -93,7 +93,7 @@ X_test = np.reshape(X_test, (X_test.shape[0], -1))
 print(X_train.shape, X_test.shape)
 
 
-# In[1]:
+# In[7]:
 
 from cs231n.classifiers import KNearestNeighbor
 
@@ -113,7 +113,7 @@ classifier.train(X_train, y_train)
 # 
 # First, open `cs231n/classifiers/k_nearest_neighbor.py` and implement the function `compute_distances_two_loops` that uses a (very inefficient) double loop over all pairs of (test, train) examples and computes the distance matrix one element at a time.
 
-# In[ ]:
+# In[8]:
 
 # Open cs231n/classifiers/k_nearest_neighbor.py and implement
 # compute_distances_two_loops.
@@ -123,7 +123,7 @@ dists = classifier.compute_distances_two_loops(X_test)
 print(dists.shape)
 
 
-# In[ ]:
+# In[9]:
 
 # We can visualize the distance matrix: each row is a single test example and
 # its distances to training examples
@@ -140,7 +140,7 @@ plt.show()
 # 
 # 
 
-# In[ ]:
+# In[12]:
 
 # Now implement the function predict_labels and run the code below:
 # We use k = 1 (which is Nearest Neighbor).
@@ -154,7 +154,7 @@ print('Got %d / %d correct => accuracy: %f' % (num_correct, num_test, accuracy))
 
 # You should expect to see approximately `27%` accuracy. Now lets try out a larger `k`, say `k = 5`:
 
-# In[ ]:
+# In[13]:
 
 y_test_pred = classifier.predict_labels(dists, k=5)
 num_correct = np.sum(y_test_pred == y_test)
@@ -164,7 +164,7 @@ print('Got %d / %d correct => accuracy: %f' % (num_correct, num_test, accuracy))
 
 # You should expect to see a slightly better performance than with `k = 1`.
 
-# In[ ]:
+# In[14]:
 
 # Now lets speed up distance matrix computation by using partial vectorization
 # with one loop. Implement the function compute_distances_one_loop and run the
@@ -185,7 +185,7 @@ else:
     print('Uh-oh! The distance matrices are different')
 
 
-# In[ ]:
+# In[15]:
 
 # Now implement the fully vectorized version inside compute_distances_no_loops
 # and run the code
@@ -200,7 +200,7 @@ else:
     print('Uh-oh! The distance matrices are different')
 
 
-# In[ ]:
+# In[16]:
 
 # Let's compare how fast the implementations are
 def time_function(f, *args):
@@ -229,7 +229,7 @@ print('No loop version took %f seconds' % no_loop_time)
 # 
 # We have implemented the k-Nearest Neighbor classifier but we set the value k = 5 arbitrarily. We will now determine the best value of this hyperparameter with cross-validation.
 
-# In[ ]:
+# In[19]:
 
 num_folds = 5
 k_choices = [1, 3, 5, 8, 10, 12, 15, 20, 50, 100]
@@ -243,7 +243,11 @@ y_train_folds = []
 # y_train_folds[i] is the label vector for the points in X_train_folds[i].     #
 # Hint: Look up the numpy array_split function.                                #
 ################################################################################
-pass
+
+num_train = np.shape(X_train)[0]
+X_train_folds = np.array_split(X_train, num_folds)
+y_train_folds = np.array_split(y_train, num_folds)
+
 ################################################################################
 #                                 END OF YOUR CODE                             #
 ################################################################################
@@ -263,7 +267,27 @@ k_to_accuracies = {}
 # last fold as a validation set. Store the accuracies for all fold and all     #
 # values of k in the k_to_accuracies dictionary.                               #
 ################################################################################
-pass
+
+classifier = KNearestNeighbor()
+for k in k_choices:
+    k_to_accuracies[k] = []
+    for i in range(0, num_folds):
+        X_validate = np.array(X_train_folds)[i]
+        X_t = []
+        y_validate = np.array(y_train_folds)[i]
+        y_t = []
+        for j in range(0, num_folds-1):
+            X_t.append(X_train_folds[(i+1+j)%num_folds])
+            y_t.append(y_train_folds[(i+1+j)%num_folds])
+        X_t = np.concatenate(tuple(X_t))
+        y_t = np.concatenate(tuple(y_t))
+        classifier.train(X_t, y_t)
+        y_predict = classifier.predict(X_validate, k, num_loops=0)
+        num_validate = np.shape(y_validate)[0]
+        num_correct = np.sum(y_validate==y_predict)
+        accuracy = (float)(num_correct)/num_validate
+        k_to_accuracies[k].append(accuracy)
+        
 ################################################################################
 #                                 END OF YOUR CODE                             #
 ################################################################################
@@ -274,7 +298,7 @@ for k in sorted(k_to_accuracies):
         print('k = %d, accuracy = %f' % (k, accuracy))
 
 
-# In[ ]:
+# In[20]:
 
 # plot the raw observations
 for k in k_choices:
@@ -291,7 +315,7 @@ plt.ylabel('Cross-validation accuracy')
 plt.show()
 
 
-# In[ ]:
+# In[21]:
 
 # Based on the cross-validation results above, choose the best value for k,   
 # retrain the classifier using all the training data, and test it on the test
@@ -306,4 +330,9 @@ y_test_pred = classifier.predict(X_test, k=best_k)
 num_correct = np.sum(y_test_pred == y_test)
 accuracy = float(num_correct) / num_test
 print('Got %d / %d correct => accuracy: %f' % (num_correct, num_test, accuracy))
+
+
+# In[ ]:
+
+
 
