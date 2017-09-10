@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*- 
+
 import numpy as np
 from random import shuffle
 from past.builtins import xrange
@@ -36,12 +38,20 @@ def svm_loss_naive(W, X, y, reg):
       if margin > 0:
         loss += margin
 
+        dW[:,j] += X[i, :].T
+        dW[:, y[i]] -= X[i, :].T
+
   # Right now the loss is a sum over all training examples, but we want it
   # to be an average instead so we divide by num_train.
   loss /= num_train
 
+  dW /= num_train
+
   # Add regularization to the loss.
-  loss += reg * np.sum(W * W)
+  #loss += reg * np.sum(W * W)
+
+  loss += 0.5*reg * np.sum(W * W)
+  dW += reg*W
 
   #############################################################################
   # TODO:                                                                     #
@@ -70,7 +80,24 @@ def svm_loss_vectorized(W, X, y, reg):
   # Implement a vectorized version of the structured SVM loss, storing the    #
   # result in loss.                                                           #
   #############################################################################
-  pass
+  #求得得分矩阵
+  S = X.dot(W)
+  num_train = np.shape(X)[0]
+  SY = np.zeros(num_train)
+  for i in range(num_train):
+    SY[i] = S[i, y[i]]
+  
+  #将得分矩阵减去正确类别的得分，得到loss矩阵
+  L = S.T - SY+1
+  #将loss矩阵的正确分类项的值清为0
+  for i in range(num_train):
+      L[y[i], i] -=1
+        
+  #将loss矩阵中得分大于0的项相加      
+  loss = np.sum(L[L>0])
+  loss /= num_train
+
+  loss += 0.5*reg * np.sum(W * W)
   #############################################################################
   #                             END OF YOUR CODE                              #
   #############################################################################
@@ -85,7 +112,15 @@ def svm_loss_vectorized(W, X, y, reg):
   # to reuse some of the intermediate values that you used to compute the     #
   # loss.                                                                     #
   #############################################################################
-  pass
+  L = L.T
+  num_classes = np.shape(W)[1]
+  for i in range(num_train):
+        for j in range(num_classes):
+            if L[i][j] > 0 :
+                dW[:, j] += X[i, :].T
+                dW[:, y[i]] -= X[i, :].T
+  dW /= num_train
+  dW += reg*W
   #############################################################################
   #                             END OF YOUR CODE                              #
   #############################################################################
