@@ -112,6 +112,9 @@ class LinearClassifier(object):
     - loss as a single float
     - gradient with respect to self.W; an array of the same shape as W
     """
+
+    print("LinearClassifier: loss : X_batch= ", X_batch, " , y_batch= ", y_batch, " ,reg= " ,reg)
+
     pass
 
 
