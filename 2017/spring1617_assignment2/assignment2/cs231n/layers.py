@@ -2,7 +2,7 @@ from builtins import range
 import numpy as np
 
 
-def affine_forward(x, w, b):
+def affine_forward2(x, w, b):
     """
     Computes the forward pass for an affine (fully-connected) layer.
 
@@ -20,17 +20,46 @@ def affine_forward(x, w, b):
     - out: output, of shape (N, M)
     - cache: (x, w, b)
     """
-    out = None
+#'''
+    #out = None
     ###########################################################################
     # TODO: Implement the affine forward pass. Store the result in out. You   #
     # will need to reshape the input into rows.                               #
     ###########################################################################
-    x_tmp = x.reshape(x.shape[0], np.prod(x.shape[1:]))
-    out = x_tmp.dot(w) + b
+    x_tmp = np.reshape(x, (x.shape[0], np.prod(x.shape[1:])))
+    #out = x_tmp.dot(w) + b
+    print(w.__class__)
+    print(x_tmp.__class__)
+    out = np.dot(x_tmp, w) + b
+
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
     cache = (x, w, b)
+    return out, cache
+
+#'''
+
+
+def affine_forward(x, w, b):
+    # dimension
+    N = x.shape[0]
+    D = np.prod(x.shape[1:])
+    x2 = np.reshape(x, (N, D))
+    
+    '''
+    if w is None:
+        print("w is non type")
+    else:
+        print("w has type of ", w.__class__)
+    if x2 is None:
+        print("x2 is non type")
+    else:
+        print("x2 has type of ", x2.__class__)
+    '''
+    out = np.dot(x2, w) + b
+    cache = (x, w, b)
+
     return out, cache
 
 
@@ -149,6 +178,9 @@ def batchnorm_forward(x, gamma, beta, bn_param):
     - out: of shape (N, D)
     - cache: A tuple of values needed in the backward pass
     """
+
+    print("------------batchnorm_forward---------------------")
+
     mode = bn_param['mode']
     eps = bn_param.get('eps', 1e-5)
     momentum = bn_param.get('momentum', 0.9)
