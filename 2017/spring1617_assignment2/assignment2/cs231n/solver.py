@@ -560,13 +560,16 @@ class Solver(object):
         Run optimization to train the model.
         """
         num_train = self.X_train.shape[0]
-        print("num_train is ", num_train)
-        print("self.batch_size is ", self.batch_size)
+        
+        #print("num_train is ", num_train)
+        #print("self.batch_size is ", self.batch_size)
+        
         iterations_per_epoch = max(num_train // self.batch_size, 1)
         #iterations_per_epoch = max(num_train / self.batch_size, 1)
-        print("iterations_per_epoch is ", iterations_per_epoch)
+        
+        #print("iterations_per_epoch is ", iterations_per_epoch)
         num_iterations = self.num_epochs * iterations_per_epoch
-        print("num_iterations is ", num_iterations)
+        #print("num_iterations is ", num_iterations)
 
         for t in range(num_iterations):
             self._step()

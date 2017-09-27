@@ -179,7 +179,7 @@ def batchnorm_forward(x, gamma, beta, bn_param):
     - cache: A tuple of values needed in the backward pass
     """
 
-    print("------------batchnorm_forward---------------------")
+    #print("------------batchnorm_forward---------------------")
 
     mode = bn_param['mode']
     eps = bn_param.get('eps', 1e-5)
@@ -467,10 +467,14 @@ def conv_forward_naive(x, w, b, conv_param):
     pad = conv_param['pad']
     stride = conv_param['stride']
 
-    H_prime = 1 + (H + 2 * pad - HH) / stride
-    W_prime = 1 + (W + 2 * pad - WW) / stride
-    out = np.zeros((N, F, H_prime, W_prime))
+    H_prime = int(1 + (H + 2 * pad - HH) / stride)
+    W_prime = int(1 + (W + 2 * pad - WW) / stride)
 
+
+    out = np.zeros((N, F, H_prime, W_prime ))
+    
+    # for python3:
+    xrange = range
     for i in xrange(N):
         x_temp = np.pad(x[i], [(0, 0), (pad, pad), (pad, pad)], 'constant')
 
@@ -524,7 +528,9 @@ def conv_backward_naive(dout, cache):
     dx = np.zeros_like(x)
     dw = np.zeros_like(w)
     db = np.zeros_like(b)
-
+    
+    # for python 3:
+    xrange = range
     for i in xrange(N):
         x_temp = np.pad(x[i], [(0, 0), (pad, pad), (pad, pad)], 'constant')
         dx_temp = np.pad(dx[i], [(0, 0), (pad, pad), (pad, pad)], 'constant')
@@ -577,11 +583,13 @@ def max_pool_forward_naive(x, pool_param):
     pool_width = pool_param['pool_width']
     stride = pool_param['stride']
 
-    H_prime = 1 + (H - pool_height) / stride
-    W_prime = 1 + (W - pool_width) / stride
+    H_prime = int(1 + (H - pool_height) / stride)
+    W_prime = int(1 + (W - pool_width) / stride)
 
     out = np.zeros((N, C, H_prime, W_prime))
 
+    #for python3:
+    xrange = range
     for i in xrange(N):
         for j in xrange(H_prime):
             for k in xrange(W_prime):
@@ -625,11 +633,12 @@ def max_pool_backward_naive(dout, cache):
     pool_width = pool_param['pool_width']
     stride = pool_param['stride']
 
-    H_prime = 1 + (H - pool_height) / stride
-    W_prime = 1 + (W - pool_width) / stride
+    H_prime = int(1 + (H - pool_height) / stride)
+    W_prime = int(1 + (W - pool_width) / stride)
 
     dx = np.zeros_like(x)
-
+    
+    xrange = range
     for i in xrange(N):
         for j in xrange(H_prime):
             for k in xrange(W_prime):

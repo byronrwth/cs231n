@@ -212,7 +212,7 @@ class FullyConnectedNet(object):
         # pass of the second batch normalization layer, etc.
 
         if self.use_batchnorm:
-            print ('We use batchnorm here')
+            #print ('We use batchnorm here')
             self.bn_params = {'bn_param' + str(i + 1): {'mode': 'train',
                                                         'running_mean': np.zeros(dims[i + 1]),
                                                         'running_var': np.zeros(dims[i + 1])}
