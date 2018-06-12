@@ -22,8 +22,8 @@ def softmax_loss_naive(W, X, y, reg):
   # Initialize the loss and gradient to zero.
   loss = 0.0
   dW = np.zeros_like(W)
-  num_train = X.shape[1]
-  num_class = dW.shape[0]
+  num_train = X.shape[0]
+  num_classes = W.shape[1]
   #############################################################################
   # TODO: Compute the softmax loss and its gradient using explicit loops.     #
   # Store the loss in loss and the gradient in dW. If you are not careful     #
@@ -31,25 +31,30 @@ def softmax_loss_naive(W, X, y, reg):
   # regularization!                                                           #
   #############################################################################
 
-  loss = 0.0
-  for i in xrange(num_train):
-    X_i =  X[:,i]
-    score_i = W.dot(X_i)
-    stability = -score_i.max()
-    exp_score_i = np.exp(score_i+stability)
-    exp_score_total_i = np.sum(exp_score_i , axis = 0)
-    for j in xrange(num_class):
-      if j == y[i]:
-        dW[j,:] += -X_i.T + (exp_score_i[j] / exp_score_total_i) * X_i.T
-      else:
-        dW[j,:] += (exp_score_i[j] / exp_score_total_i) * X_i.T
-    numerator = np.exp(score_i[y[i]]+stability)
-    denom = np.sum(np.exp(score_i+stability),axis = 0)
-    loss += -np.log(numerator / float(denom))
+  
+  dscores = np.zeros((num_train, num_classes))
 
+  for i in range(num_train):
+    scores = X[i].dot(W)
+    # For numerical stability: http://cs231n.github.io/linear-classify/#softmax
+    scores -= np.max(scores)
+    p = np.exp(scores) / np.sum(np.exp(scores))
 
-  loss = loss / float(num_train) + 0.5 * reg * np.sum(W*W)
-  dW = dW / float(num_train) + reg * W
+    # Gradient computing: http://cs231n.github.io/neural-networks-case-study/#grad
+    # Mathematical derivation: https://math.stackexchange.com/a/945918/359714
+    one_hot_y = np.zeros(num_classes)
+    one_hot_y[y[i]] = 1
+    dscores[i] = p - one_hot_y
+
+    loss += -np.log(p[y[i]])
+
+  loss /= num_train
+  loss += 0.5 * reg * np.sum(W * W)
+
+  dscores /= num_train
+  dW = X.T.dot(dscores)
+  dW += reg * W
+
   #############################################################################
   #                          END OF YOUR CODE                                 #
   #############################################################################
@@ -75,19 +80,24 @@ def softmax_loss_vectorized(W, X, y, reg):
   # here, it is easy to run into numeric instability. Don't forget the        #
   # regularization!                                                           #
   #############################################################################
-  score = W.dot(X)
-  # On rajoute une constant pr ls overflow
-  score += - np.max(score , axis=0)
-  exp_score = np.exp(score) # matric exponientiel score
-  sum_exp_score_col = np.sum(exp_score , axis = 0) # sum des expo score pr chaque column
+  num_train = X.shape[0]
 
-  loss = np.log(sum_exp_score_col)
-  loss = loss - score[y,np.arange(num_train)]
-  loss = np.sum(loss) / float(num_train) + 0.5 * reg * np.sum(W*W)
-  
-  Grad = exp_score / sum_exp_score_col
-  Grad[y,np.arange(num_train)] += -1.0
-  dW = Grad.dot(X.T) / float(num_train) + reg*W
+  scores = X.dot(W)
+  scores -= np.max(scores, axis=1)[:, np.newaxis]
+  p = np.exp(scores) / np.sum(np.exp(scores), axis=1)[:, np.newaxis]
+
+  loss += np.mean(-np.log(p[np.arange(num_train), y]))
+  loss += 0.5 * reg * np.sum(W * W)
+
+  # Gradient computing: http://cs231n.github.io/neural-networks-case-study/#grad
+  dscores = p # N x C
+  dscores[np.arange(num_train), y] -= 1
+  dscores /= num_train
+
+  # dscores = X * W
+  dW = X.T.dot(dscores)
+  dW += reg * W
+
   #############################################################################
   #                          END OF YOUR CODE                                 #
   #############################################################################
