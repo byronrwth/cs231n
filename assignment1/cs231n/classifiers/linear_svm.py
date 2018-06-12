@@ -1,5 +1,6 @@
 import numpy as np
 from random import shuffle
+from past.builtins import xrange
 
 def svm_loss_naive(W, X, y, reg):
   """
@@ -28,20 +29,22 @@ def svm_loss_naive(W, X, y, reg):
   for i in range(num_train):
     scores = X[i].dot(W)
     correct_class_score = scores[y[i]]
-    for j in range(num_classes):
+    for j in xrange(num_classes):
       if j == y[i]:
         continue
       margin = scores[j] - correct_class_score + 1 # note delta = 1
       if margin > 0:
+      	# Gradient computing: http://cs231n.github.io/optimization-1/#analytic
+        dW[:, j] += X[i, :]
+        dW[:, y[i]] += -X[i, :]
         loss += margin
-
   # Right now the loss is a sum over all training examples, but we want it
   # to be an average instead so we divide by num_train.
   loss /= num_train
 
   # Add regularization to the loss.
   loss += reg * np.sum(W * W)
-
+  dW = dW / num_train + 2 * reg * W
   #############################################################################
   # TODO:                                                                     #
   # Compute the gradient of the loss function and store it dW.                #
@@ -69,7 +72,19 @@ def svm_loss_vectorized(W, X, y, reg):
   # Implement a vectorized version of the structured SVM loss, storing the    #
   # result in loss.                                                           #
   #############################################################################
-  pass
+  # Ref: https://mlxai.github.io/2017/01/06/vectorized-implementation-of-svm-loss-and-gradient-update.html
+
+  num_train = X.shape[0]
+  scores = X.dot(W)
+  # y_score' shape is (N,), y_score[i] is the i-th training data's score y_i
+  y_scores = scores[np.arange(num_train), y]
+  # np.maximum: element-wise max, let y_score be a column vector to do broadcasting
+  margins = np.maximum(0, scores - y_scores[:, np.newaxis] + 1)
+  # Don't count y_i
+  margins[np.arange(num_train), y] = 0
+  loss = np.mean(np.sum(margins, axis=1))
+  loss += reg * np.sum(W * W)
+  
   #############################################################################
   #                             END OF YOUR CODE                              #
   #############################################################################
@@ -84,7 +99,18 @@ def svm_loss_vectorized(W, X, y, reg):
   # to reuse some of the intermediate values that you used to compute the     #
   # loss.                                                                     #
   #############################################################################
-  pass
+  # Code: https://mlxai.github.io/2017/01/06/vectorized-implementation-of-svm-loss-and-gradient-update.html
+  # Excellent!
+
+  binary = margins
+  binary[margins > 0] = 1
+  row_sum = np.sum(binary, axis=1)
+  binary[np.arange(num_train), y] = -row_sum.T
+  dW = np.dot(X.T, binary)
+
+  dW /= num_train
+  dW += 2 * reg * W
+
   #############################################################################
   #                             END OF YOUR CODE                              #
   #############################################################################
